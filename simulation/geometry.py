@@ -71,15 +71,15 @@ class Tweezers:
         iarr, jarr = np.meshgrid(ivec, jvec)
         xarr, yarr = self.get_position(iarr,jarr)
         
-        self.site_indices = np.stack([iarr.flatten(), jarr.flatten()])
-        self.site_positions = np.stack([xarr.flatten(), yarr.flatten()])
+        self.indices = np.stack([iarr.flatten(), jarr.flatten()])
+        self.positions = np.stack([xarr.flatten(), yarr.flatten()])
         
     def plot_sites(self):
         """
         Visualize the tweezers.
         """
         fig, ax = plt.subplots(figsize=(10,10))
-        r = self.site_positions
+        r = self.positions
         x = r[0, :]
         y = r[1, :]
         plt.scatter(x, y)
@@ -90,10 +90,11 @@ class Tweezers:
         
         
 if __name__ == '__main__':
-    n_sites = (15,10)
-    spacing = (5, 5)
-    angle = np.pi/6
+    tweezer_options = {
+        'n_sites': (15,10),
+        'spacing': (5,5),
+        'angle': np.pi/6,
+        }
     
-    
-    T = Tweezers(n_sites, spacing, angle)
+    T = Tweezers(**tweezer_options)
     T.plot_sites()

@@ -10,23 +10,26 @@ import matplotlib.pyplot as plt
 from geometry import Tweezers
 
 
-class Atoms():
-    def __init__(self, p_filling):
+class Atoms:
+    def __init__(self, p_filling, scattering_rate, sigma_thermal):
         self.p_filling = p_filling
+        self.scattering_rate = scattering_rate
+        self.sigma_thermal = sigma_thermal
         pass
         
-    def generate_atoms(self, site_positions, sigma):
+    def generate_atoms(self, site_positions):
         n_sites = site_positions.shape[-1]
+        
+        # randomly fill sites
         self.occupation = np.random.binomial(1, self.p_filling, size=n_sites)
-        self.occupied_positions = site_positions[:, self.occupation==1]
-        self.atom_positions = np.random.normal(self.occupied_positions, sigma)
+        self.positions = site_positions[:, self.occupation==1]
         
     def plot_atoms(self):
         """
         Visualize the atoms.
         """
         fig, ax = plt.subplots(figsize=(10,10))
-        r = self.atom_positions
+        r = self.positions
         x = r[0, :]
         y = r[1, :]
         plt.scatter(x, y)
@@ -36,16 +39,21 @@ class Atoms():
         plt.title('Atom positions')
         
 if __name__ == '__main__':
-    n_sites = (15,10)
-    spacing = (5,5)
-    angle = np.pi/6
+    tweezer_options = {
+        'n_sites': (15,10),
+        'spacing': (5,5),
+        'angle': np.pi/6,
+        }
     
-    T = Tweezers(n_sites, spacing, angle)
+    T = Tweezers(**tweezer_options)
     T.plot_sites()
     
-    p_filling = 1
-    A = Atoms(p_filling)
+    atom_options = {
+        'p_filling': 1,
+        'scattering_rate': 1,
+        'sigma': 0
+        }
     
-    sigma = 0.5
-    A.generate_atoms(T.site_positions, sigma)
+    A = Atoms(**atom_options)
+    A.generate_atoms(T.positions)
     A.plot_atoms()
