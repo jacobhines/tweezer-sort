@@ -16,6 +16,7 @@ class Optics():
     def __init__(self, magnification, NA):
         self.magnification = magnification
         self.NA = NA
+        self.collection_efficiency = 0.5*(1 - np.sqrt(1 - NA**2))
         
     def set_diffraction(self, wavelength):
         self.sigma_diffraction = wavelength/(2*self.NA)
@@ -110,10 +111,8 @@ class Camera():
         
         
 class Imaging():
-    def __init__(self, optics_options, camera_options, laser_options, **kwargs):
+    def __init__(self, optics_options, camera_options, laser_options, scattering_rate=None, **kwargs):
         self.laser = Laser(**laser_options)
-        
-        self.scattering_rate = None
         
         self.optics = Optics(**optics_options)
         self.optics.set_diffraction(self.laser.wavelength*1e-3)
@@ -121,11 +120,15 @@ class Imaging():
         self.camera = Camera(**camera_options)
         self.camera.set_scale(self.optics.magnification)
         
-    def set_scattering_rate(self, scattering_rate=None):
-        if scattering_rate is not None: 
-            self.scattering_rate = scattering_rate
+        self.set_rates(scattering_rate)
+        
+    def set_rates(self, scattering_rate=None):
+        self.scattering_rate = scattering_rate
+        
+        if scattering_rate is None:
+            self.collection_rate = None
         else:
-            raise Exception('Must specify scattering_rate or implement imaging-specific calculation.')
+            self.collection_rate = self.optics.collection_efficiency * self.scattering_rate
         
     def collect_photons(self, photon_positions):
         photon_positions = self.optics.apply_diffraction(photon_positions)
