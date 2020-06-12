@@ -17,6 +17,10 @@ class Tweezers:
         self.angle = angle
         self.offset=offset
         
+        self.occupation = None
+        self.indices = None
+        self.positions = None
+        
         # laser for each tweezer
         self.laser = Laser(wavelength, power, waist)
         self.trap_depth = None
@@ -96,6 +100,18 @@ class Tweezers:
         
         self.indices = np.stack([iarr.flatten(), jarr.flatten()])
         self.positions = np.stack([xarr.flatten(), yarr.flatten()])
+        
+    def set_gt_mask(self):
+        if self.occupation is None:
+            raise Exception('Must set occupation before generating ground truth mask')
+            
+        mask = np.zeros(self.n_sites, dtype=bool)
+            
+        for idx, idx_tuple in enumerate(self.indices.T):
+            i, j = idx_tuple
+            mask[i,j] = bool(self.occupation[idx])
+            
+        self.gt_mask = mask
         
     def plot_sites(self):
         """

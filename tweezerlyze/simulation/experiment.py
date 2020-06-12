@@ -27,6 +27,8 @@ class Experiment:
         
     def load_atoms(self):
         self.atoms.load_atoms(self.geometry.positions)
+        self.geometry.occupation = self.atoms.occupation
+        self.geometry.set_gt_mask()
         
     def image_atoms(self, imaging_time):
         # generate fluorescence photons
@@ -43,4 +45,8 @@ class Experiment:
     def show_atoms(self, roi, scalebar=True, scalebar_length=None):
         if scalebar_length is None:
             scalebar_length = self.geometry.spacing[0]
-        self.imaging.camera.show_image(roi, scalebar, scalebar_length)
+            
+        if roi is not None:
+            self.imaging.camera.crop_image(roi)
+            
+        self.imaging.camera.show_image(bool(roi), scalebar, scalebar_length)

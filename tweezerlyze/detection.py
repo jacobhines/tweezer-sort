@@ -5,33 +5,30 @@ Created on Tue Jun  2 10:25:49 2020
 @author: Jacob
 """
 
-from skimage import data, feature, exposure
 import numpy as np
 import matplotlib.pyplot as plt
 
 from math import sqrt
-from skimage import data
-from skimage.feature import blob_dog, blob_log, blob_doh
-from skimage.color import rgb2gray
-from skimage.util import img_as_uint, img_as_ubyte
+from skimage.feature import blob_dog, blob_log
+from skimage.util import img_as_uint, img_as_ubyte, img_as_float
 
 
 class DetectionBot():
-    def __init__(self):
-        self.calibrated = {'center': False,
-                           'spacing': False}
-        
+    def __init__(self):       
         #images
-        self.reference = None
-        self.background = None
+        self.reference_image = None
+        self.background_image = None
         self.image = None
         
         #positions
-        self.reference_tweezer = None
+        self.reference_pixels = None
         self.blob_sizes = None
         self.blob_pixels = None
         self.blob_indices = None
         self.spacing = None
+        
+        #boolean mask
+        self.blob_mask = None
         
     def set_background(self, background):
         """
@@ -46,17 +43,18 @@ class DetectionBot():
             
         self.spacing = spacing
     
-    def normalize(self, image, dtype='uint8'):
-        if image.dtype == np.dtype('float64'):
-            image *= 1/np.max(image)
+    def normalize(self, image, dtype='float'):
+        image = image/np.max(image)
         
-        if dtype=='uint8':
+        if dtype=='float':
+            return img_as_float(image)
+        elif dtype=='uint8':
             return img_as_ubyte(image)
         elif dtype=='uint16':
             return img_as_uint(image)
         
     def get_blob_pixels(self, image, method='dog', min_sigma=1, max_sigma=1,
-                  threshold=0.01, **blob_kwargs):
+                  threshold=0.01, exclude_border=False, **blob_kwargs):
         if method == 'dog':
             blob_funct = blob_dog
         elif method == 'log':
@@ -66,6 +64,7 @@ class DetectionBot():
                            min_sigma=min_sigma,
                            max_sigma=max_sigma,
                            threshold=threshold,
+                           exclude_border=exclude_border,
                            **blob_kwargs)
         
         # separate positions and sizes
@@ -74,75 +73,92 @@ class DetectionBot():
 
         return positions, sizes
         
-    def set_reference(self, reference):
+    def set_reference(self, reference_image, reference_tuple=(0,0)):
         """
         Set the reference point of the tweezer array by passing an image of atoms
         loaded only into the reference site
         """
-        reference = self.normalize(reference)
+        reference_image = self.normalize(reference_image)
+        self.reference_image = reference_image
+        self.reference_tuple = reference_tuple
         
-        self.reference = reference
-        blobs, _ = self.get_blob_pixels(reference)
+        blobs, sizes = self.get_blob_pixels(self.reference_image)
+        
+        if len(blobs) == 0:
+            self.show_blobs(self.reference_image, blobs, sizes, circles=True, text=False)
+            raise Exception('No reference blob found)')
         if len(blobs) > 1:
-            raise Exception('Reference image should only contain one blob.')  
+            print('blobs', blobs)
+            self.show_blobs(self.reference_image, blobs, sizes, circles=True, text=False)
+            raise Exception('Reference image should only contain one blob.')
 
-        self.reference_tweezer = blobs[0]
+
+        self.reference_pixels = blobs[0]
         
     def get_blob_indices(self, blobs):
-        if self.reference_tweezer is None:
+        if self.reference_pixels is None:
             raise Exception('Must call set_reference before acquiring atom indices.')
         
         # pixel positions relative to reference tweezer, dropping blob size
-        blobs_relative = blobs - self.reference_tweezer
+        blobs_relative = blobs - self.reference_pixels
         
         if self.spacing is None:
             raise Exception('Must set spacng before acquiring atom indices.')
         
         blob_indices = np.round(blobs_relative/self.spacing).astype('int')
+        
+        # shift relative to reference_tuple
+        blob_indices += np.array(self.reference_tuple)
+        
         return blob_indices
     
     def set_blobs(self, image, **blob_kwargs):
-        self.image = self.normalize(image)
+        image = self.normalize(image)
+        self.image = image
         self.blob_pixels, self.blob_sizes = self.get_blob_pixels(image, **blob_kwargs)
         self.blob_indices = self.get_blob_indices(self.blob_pixels)
+        
+    def set_blob_mask(self, n_sites):
+        if self.blob_indices is None:
+            raise Exception('Must call set_blobs before setting blob mask.')
+            
+        mask = np.zeros(n_sites)
+        for i, j in self.blob_indices:
+            try:
+                mask[i,j] = 1
+            except:
+                pass
+            
+        self.blob_mask = mask.astype('bool')
     
-    def show_blobs(self, circles=False, text=True):
-        if self.blob_pixels is None:
-            raise Exception('Must call set_blobs before show_blobs')
+    def show_blobs(self, image=None, blobs=None, sizes=None, circles=False, text=True):
+        if image is None:
+            image = self.image
+            
+        if blobs is None:
+            if self.blob_pixels is None:
+                raise Exception('Must provide blobs or call set_blobs before show_blobs')
+            else:
+                blobs = self.blob_pixels
+                sizes = self.blob_sizes
             
         fig, ax = plt.subplots(figsize=(6, 6))
     
-        ax.imshow(self.image.T, origin='lower')
+        ax.imshow(image.T, origin='lower')
         
-        for idx, blob in enumerate(self.blob_pixels):
+        for idx, blob in enumerate(blobs):
             x, y = blob
             
             if circles:
-                r = self.blob_sizes[idx]
+                r = sizes[idx]
                 c = plt.Circle((x, y), r, color='yellow', linewidth=2, fill=False)
                 ax.add_patch(c)
             
             if text:
                 i, j = self.blob_indices[idx]
-                t = plt.text(x, y, f'({i},{j})', color='white')
+                plt.text(x, y, f'({i},{j})', color='white')
 
         ax.set_axis_off()
         
         plt.tight_layout()
         plt.show()
-
-
-if __name__ == '__main__':
-    bot = DetectionBot()
-    spacing_um = np.array([5,5])
-    camera_scale = np.array([1.08, 1.08]) #um/px
-    spacing_px = spacing_um / camera_scale
-    bot.set_spacing(spacing_px)
-    
-    reference = np.load('atoms_reference.npy')
-    bot.set_reference(reference)
-    
-    image = np.load('atoms_sparse.npy')
-    bot.set_blobs(image)
-
-    bot.show_blobs()

@@ -55,15 +55,22 @@ class Camera():
             raise Exception('Must set scale before exposing camera.')
         
         # base image has background and thermal noise
-        self.noise = np.random.normal(self.dark_mean, self.dark_std, self.sensor_size)
+        self.noise = np.random.normal(0, self.dark_std, self.sensor_size)
         
         # bin the photons into pixels
         x = photon_positions[0,:]
         y = photon_positions[1,:]
         self.counts = np.histogram2d(x, y, bins=self.pixel_bins)[0]
         
-        # combine noise with counts
-        self.image = self.noise + self.gain*self.counts
+        # signal is counts amplfied by gain with constant offset
+        signal = self.gain*self.counts + self.dark_mean
+        
+        # combine signal with noise
+        image = signal + self.noise
+        
+        # convert to uint16
+        self.signal = signal.astype('uint16')
+        self.image = image.astype('uint16')
         
     
     def grab_image(self):
@@ -78,18 +85,27 @@ class Camera():
         """
         return self.image
     
-    def show_image(self, roi=None, scalebar=False, scalebar_length=None):
+    def crop_image(self, roi):
+        """
+        Crops the most recently acquired image.
+        """
+        self.image_cropped = self.image[roi['xmin']:roi['xmax'], roi['ymin']:roi['ymax']]
+        self.signal_cropped = self.signal[roi['xmin']:roi['xmax'], roi['ymin']:roi['ymax']]
+
+            
+        return self.image_cropped
+    
+    def show_image(self, cropped=True, scalebar=False, scalebar_length=None):
         """
         Displays the most recently acquired image.
         """
-        
-        if roi is not None:
-            self.image_cropped = self.image[roi['xmin']:roi['xmax'], roi['ymin']:roi['ymax']]
+        if cropped:
+            image = self.image_cropped
         else:
-            self.image_cropped = self.image
+            image = self.image
         
         fig, ax = plt.subplots(figsize=(15,10))
-        plt.imshow(self.image_cropped.T, origin='lower')
+        plt.imshow(image.T, origin='lower')
         
         scalebar = AnchoredSizeBar(ax.transData,
                            scalebar_length/self.scale[0],
