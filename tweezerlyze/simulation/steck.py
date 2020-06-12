@@ -8,7 +8,7 @@ Cesium properties pulled from D Steck, Cesium D Line Data
 """
 
 import numpy as np
-import constants as cs
+from . import constants as cs
 
 
 class Transition():

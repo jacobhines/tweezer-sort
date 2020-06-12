@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import matplotlib.font_manager as fm
 fontprops = fm.FontProperties(size=18)
-from lasers import Laser
+from .lasers import Laser
 
 
 class Optics():

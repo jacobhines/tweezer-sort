@@ -7,7 +7,7 @@ Created on Mon May 25 15:03:01 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import constants as cs
+from . import constants as cs
 
 
 class Atoms():

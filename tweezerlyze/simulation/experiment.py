@@ -5,10 +5,10 @@ Created on Mon May 25 17:33:18 2020
 @author: Jacob
 """
 
-from steck import cesium
-from atoms import Atoms
-from geometry import Tweezers
-from imaging import Imaging
+from . steck import cesium
+from . atoms import Atoms
+from . geometry import Tweezers
+from . imaging import Imaging
 
 import numpy as np
 
@@ -19,7 +19,7 @@ class Experiment:
         
         self.geometry = Tweezers(**tweezer_options)
         self.geometry.set_trap_depth(atoms=self.atoms, verbose=False)
-        self.geometry.set_sigma_thermal(atoms=self.atoms, verbose=True)
+        self.geometry.set_sigma_thermal(atoms=self.atoms, verbose=False)
         
         self.imaging = Imaging(**imaging_options)
         self.imaging.set_rates(scattering_rate = imaging_options['scattering_rate'])

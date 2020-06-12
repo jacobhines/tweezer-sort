@@ -7,14 +7,15 @@ Created on Sun May 24 16:01:29 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-from lasers import Laser
-import constants as cs
+from .lasers import Laser
+from . import constants as cs
 
 class Tweezers:
-    def __init__(self, n_sites, spacing, angle, wavelength, power, waist, **kwargs):
+    def __init__(self, n_sites, spacing, angle, offset, wavelength, power, waist, **kwargs):
         self.n_sites = n_sites
         self.spacing = spacing
         self.angle = angle
+        self.offset=offset
         
         # laser for each tweezer
         self.laser = Laser(wavelength, power, waist)
@@ -89,6 +90,9 @@ class Tweezers:
         jvec = np.arange(nj)
         iarr, jarr = np.meshgrid(ivec, jvec)
         xarr, yarr = self.get_position(iarr,jarr)
+        
+        xarr += self.offset[0]
+        yarr += self.offset[1]
         
         self.indices = np.stack([iarr.flatten(), jarr.flatten()])
         self.positions = np.stack([xarr.flatten(), yarr.flatten()])
