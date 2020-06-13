@@ -131,7 +131,8 @@ class DetectionBot():
             
         self.blob_mask = mask.astype('bool')
     
-    def show_blobs(self, image=None, blobs=None, sizes=None, circles=False, text=True):
+    def show_blobs(self, image=None, blobs=None, sizes=None, circles=False, text=True,
+                   true_mask=None, title=None, cmap='gray'):
         if image is None:
             image = self.image
             
@@ -144,7 +145,7 @@ class DetectionBot():
             
         fig, ax = plt.subplots(figsize=(6, 6))
     
-        ax.imshow(image.T, origin='lower')
+        ax.imshow(image.T, origin='lower', cmap=cmap)
         
         for idx, blob in enumerate(blobs):
             x, y = blob
@@ -156,9 +157,25 @@ class DetectionBot():
             
             if text:
                 i, j = self.blob_indices[idx]
-                plt.text(x, y, f'({i},{j})', color='white')
+                
+                
+                if true_mask is not None:
+                    try:
+                        if (i < 0) or (j < 0):
+                            color = 'red'
+                        elif true_mask[i,j] == self.blob_mask[i,j]:
+                            color = 'white'
+                        else:
+                            color = 'red'
+                    except:
+                        color = 'red'
+                else:
+                    color = 'white'
+                    
+                plt.text(x, y, f'({i},{j})', color=color, fontdict={'size':15})
 
         ax.set_axis_off()
-        
+        if title:
+            plt.title(title)
         plt.tight_layout()
         plt.show()

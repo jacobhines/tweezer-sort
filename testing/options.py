@@ -4,20 +4,21 @@ Created on Thu Jun 11 18:50:05 2020
 
 @author: Jacob
 """
-
-from tweezerlyze.simulation.steck import cesium
 import numpy as np
 
 
+
+from tweezerlyze.simulation.steck import cesium
+
 atom_options = {
     'species': cesium,
-    'p_filling':0.6,
+    'p_filling':0.5,
     'temperature': 20, #uK
     }
 
 tweezer_options = {
-    'n_sites': (1,1), #int
-    'spacing': (5,5), #um
+    'n_sites': (10,10), #int
+    'spacing': (50,50), #um
     'angle': 0*np.pi/6, #rad
     'wavelength': 1064, #nm
     'power': 100, #mW

@@ -95,7 +95,7 @@ class Camera():
             
         return self.image_cropped
     
-    def show_image(self, cropped=True, scalebar=False, scalebar_length=None):
+    def show_image(self, cropped=True, title=None, colorbar=False, scalebar=False, scalebar_length=None):
         """
         Displays the most recently acquired image.
         """
@@ -107,20 +107,26 @@ class Camera():
         fig, ax = plt.subplots(figsize=(15,10))
         plt.imshow(image.T, origin='lower')
         
-        scalebar = AnchoredSizeBar(ax.transData,
-                           scalebar_length/self.scale[0],
-                           f'{scalebar_length} um',
-                           'upper right', 
-                           pad=1,
-                           color='white',
-                           frameon=False,
-                           size_vertical=0.5,
-                           sep = 10,
-                           fontproperties=fontprops)
+        if scalebar:
+            scalebar = AnchoredSizeBar(ax.transData,
+                               scalebar_length/self.scale[0],
+                               f'{scalebar_length} um',
+                               'upper right', 
+                               pad=1,
+                               color='white',
+                               frameon=False,
+                               size_vertical=0.5,
+                               sep = 10,
+                               fontproperties=fontprops)
+    
+            ax.add_artist(scalebar)
 
-        ax.add_artist(scalebar)
-        ax.add_artist(scalebar)
-        # plt.colorbar(label='counts')
+        if colorbar:
+            plt.colorbar(label='counts', pad=0.01)
+            
+        if title:
+            plt.title(title)
+            
         plt.xlabel('x (px)')
         plt.ylabel('y (px)')
         fig.patch.set_facecolor('white')

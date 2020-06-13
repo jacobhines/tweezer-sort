@@ -16,17 +16,18 @@ import matplotlib
 
 font = {'family' : 'normal',
         'weight' : 'normal',
-        'size'   : 22}
+        'size'   : 15}
 
 matplotlib.rc('font', **font)
 
 ##### OPTIONS #####
 # imaging times
-n_imaging_times = 50
-imaging_time_vec = 10**np.linspace(1, 3, n_imaging_times)
+n_imaging_times = 1
+# imaging_time_vec = 2**np.arange(0, 11)
+imaging_time_vec = [200]
 
 # runs per imaging time
-n_runs = 20
+n_runs = 1
 
 # cropping
 roi = {
@@ -36,7 +37,9 @@ roi = {
     'ymax': 50,
     }
 
-debug = False
+debug = True
+
+plots = False
 
 ##### REFERENCE IMAGE #####
 experiment_options['atom_options']['p_filling'] = 1
@@ -70,18 +73,20 @@ fidelity = np.copy(template)
 psnr = np.copy(template)
 dt = np.copy(template)
 dark_mean = expt_sparse.imaging.camera.dark_mean
+expt_sparse.load_atoms()
+
 
 for i, imaging_time in enumerate(imaging_time_vec):
     print(f'{i}/{n_imaging_times}')
     for j in range(n_runs):
         # imaging
-        expt_sparse.load_atoms()
+        
         expt_sparse.image_atoms(imaging_time=imaging_time)
         image = expt_sparse.imaging.camera.crop_image(roi)
         
         # detection
         t_start = time()
-        bot.set_blobs(image)
+        bot.set_blobs(image, threshold=0.008)
         bot.set_blob_mask(expt_sparse.geometry.n_sites)
         dt[i,j] = time()-t_start
         
@@ -91,7 +96,11 @@ for i, imaging_time in enumerate(imaging_time_vec):
         
         
         if debug:
-            bot.show_blobs(circles=False, text=True)
+            bot.show_blobs(circles=False,
+                           text=False,
+                           true_mask=expt_sparse.geometry.gt_mask,
+                           title=f'SE = {imaging_time}',
+                           cmap='viridis')
             print('PSNR:', psnr[i,j])
             print('Fidelity:', fidelity[i,j])
             print('Time:', dt[i,j]*1e3, ' ms')
@@ -106,25 +115,26 @@ psnr_std = np.std(psnr, axis=-1)
 dt_mean = np.mean(dt, axis=-1)
 dt_std = np.std(dt, axis=-1)
 
-
-fig, ax = plt.subplots(figsize=(10,6))
-fig.patch.set_facecolor('white')
-plt.errorbar(imaging_time_vec, fidelity_mean, yerr=fidelity_std, fmt='o')
-plt.xscale('log')
-plt.xlabel('scattering events')
-plt.ylabel('fidelity')
-plt.grid()
-
-fig, ax = plt.subplots(figsize=(10,6))
-fig.patch.set_facecolor('white')
-plt.errorbar(psnr_mean, fidelity_mean, xerr=psnr_std, yerr=fidelity_std, fmt='o')
-plt.xlabel('psnr')
-plt.ylabel('fidelity')
-plt.grid()
-
-fig, ax = plt.subplots(figsize=(10,6))
-fig.patch.set_facecolor('white')
-plt.errorbar(imaging_time_vec, dt_mean*1e3, yerr=dt_std*1e3, fmt='o')
-plt.xlabel('scattering events')
-plt.ylabel('time (ms)')
-plt.ylim([0,None])
+if plots:
+    fig, ax = plt.subplots(figsize=(10,6))
+    fig.patch.set_facecolor('white')
+    plt.errorbar(imaging_time_vec, fidelity_mean, yerr=fidelity_std, fmt='o')
+    plt.xscale('log')
+    plt.xlabel('scattering events')
+    plt.ylabel('fidelity')
+    plt.grid()
+    
+    fig, ax = plt.subplots(figsize=(10,6))
+    fig.patch.set_facecolor('white')
+    plt.errorbar(psnr_mean, fidelity_mean, xerr=psnr_std, yerr=fidelity_std, fmt='o')
+    plt.xlabel('psnr')
+    plt.ylabel('fidelity')
+    plt.grid()
+    
+    fig, ax = plt.subplots(figsize=(10,6))
+    fig.patch.set_facecolor('white')
+    plt.errorbar(imaging_time_vec, dt_mean*1e3, yerr=dt_std*1e3, fmt='o')
+    plt.xlabel('scattering events')
+    plt.ylabel('time (ms)')
+    plt.xscale('log')
+    plt.ylim([0,None])

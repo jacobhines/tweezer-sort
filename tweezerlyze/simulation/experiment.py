@@ -42,11 +42,15 @@ class Experiment:
         # collect them on the camera
         self.imaging.camera.expose(photon_positions)
         
-    def show_atoms(self, roi, scalebar=True, scalebar_length=None):
+    def show_atoms(self, roi, title=None, colorbar=False, scalebar=True, scalebar_length=None):
         if scalebar_length is None:
             scalebar_length = self.geometry.spacing[0]
             
         if roi is not None:
             self.imaging.camera.crop_image(roi)
             
-        self.imaging.camera.show_image(bool(roi), scalebar, scalebar_length)
+        self.imaging.camera.show_image(cropped=bool(roi),
+                                       colorbar=colorbar,
+                                       title=title,
+                                       scalebar=scalebar,
+                                       scalebar_length=scalebar_length)
