@@ -8,14 +8,19 @@ Cesium properties pulled from D Steck, Cesium D Line Data
 """
 
 import numpy as np
-from . import constants as cs
 
+class quantity(float):
+    def __new__(self, value, unit):
+        return float.__new__(self, value)
+    def __init__(self, value, unit):
+        float.__init__(value)
+        self.unit = unit
 
 class Transition():
     def __init__(self, properties):
         for k, qtuple in properties.items():
             value, unit = qtuple
-            setattr(self, k, cs.quantity(value, unit))
+            setattr(self, k, quantity(value, unit))
 
 
 class Atom():
@@ -23,20 +28,20 @@ class Atom():
         
         for key, qtuple in properties.items():
             value, unit = qtuple
-            setattr(self, key, cs.quantity(value, unit))
+            setattr(self, key, quantity(value, unit))
         
         for line, tp in transition_properties.items():
             setattr(self, line, Transition(tp))
             
 def saturation_intensity(frequency, line, polarization):
     if (frequency == 'resonant') and (line == '45') and (polarization == 'isotropic'):
-        return cs.quantity(2.7059*10, 'W/m2')
+        return quantity(2.7059*10, 'W/m2')
     elif (frequency == 'detuned') and (line == 'D2') and (polarization == 'linear'):
-        return cs.quantity(1.6536*10, 'W/m2')
+        return quantity(1.6536*10, 'W/m2')
     elif (frequency == 'resonant') and (line == 'cycling') and (polarization == 'circular'):
-        return cs.quantity(1.1023*10, 'W/m2')
+        return quantity(1.1023*10, 'W/m2')
     elif (frequency == 'detuned') and (line == 'D1') and (polarization == 'linear'):
-        return cs.quantity(2.4981*10, 'W/m2')
+        return quantity(2.4981*10, 'W/m2')
     else:
         raise Exception('Saturation intensity not precalcualted for this combination of frequency, line, and polarization.')
 
