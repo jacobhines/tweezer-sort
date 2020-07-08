@@ -19,9 +19,9 @@ expt_reference.image_atoms(imaging_time=1000)
 
 roi = {
     'xmin': 0,
-    'xmax': 500,
+    'xmax': 50,
     'ymin': 0,
-    'ymax': 500,
+    'ymax': 50,
     }
     
 expt_reference.show_atoms(roi)
@@ -37,7 +37,7 @@ expt_sparse = Experiment(**experiment_options)
 expt_sparse.load_atoms()
 
 # times = 2**np.arange(0, 11)
-times = [1000]
+times = [10000]
 
 for t in times:
     expt_sparse.image_atoms(imaging_time=t)

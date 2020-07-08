@@ -8,7 +8,7 @@ import numpy as np
 
 
 
-from tweezerlyze.simulation.steck import cesium
+from tweezerlyze.calculation.steck import cesium
 
 atom_options = {
     'species': cesium,
@@ -18,7 +18,7 @@ atom_options = {
 
 tweezer_options = {
     'n_sites': (10,10), #int
-    'spacing': (50,50), #um
+    'spacing': (5,5), #um
     'angle': 0*np.pi/6, #rad
     'wavelength': 1064, #nm
     'power': 100, #mW
@@ -36,8 +36,8 @@ camera_options = {
     'sensor_size': (1024, 1024), #px
     'gain': 10,
     'position': (4, 4), #px
-    'dark_mean': 500, 
-    'dark_std': 10,
+    'noise_mean': 500, 
+    'noise_std': 10,
     }
 
 imaging_laser_options = {
