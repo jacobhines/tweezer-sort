@@ -6,7 +6,7 @@ Created on Mon May 25 17:34:34 2020
 """
 
 import numpy as np
-from . import constants as cs
+from ..calculation import constants as cs
 
 class Laser():
     def __init__(self, wavelength, power, waist):

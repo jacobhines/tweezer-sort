@@ -5,7 +5,7 @@ Created on Mon May 25 17:33:18 2020
 @author: Jacob
 """
 
-from . steck import cesium
+from .. calculation.steck import cesium
 from . atoms import Atoms
 from . geometry import Tweezers
 from . imaging import Imaging
@@ -34,7 +34,8 @@ class Experiment:
         # generate fluorescence photons
         photon_positions = self.atoms.generate_photons(self.imaging.collection_rate,
                                                        self.geometry.sigma_thermal,
-                                                       imaging_time)
+                                                       imaging_time,
+                                                       self.imaging.optics.collection_efficiency)
         
         # propagate them through the imaging optics
         photon_positions = self.imaging.optics.apply_diffraction(photon_positions)

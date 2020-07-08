@@ -7,7 +7,6 @@ Created on Mon May 25 15:03:01 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-from . import constants as cs
 
 
 class Atoms():
@@ -24,6 +23,7 @@ class Atoms():
         
         self.atoms_generated = False
         self.photons_generated = False
+        self.n_photons = None
         
     def load_atoms(self, site_positions):
         n_sites = site_positions.shape[-1]
@@ -34,16 +34,16 @@ class Atoms():
         
         self.atoms_generated = True
         
-    def generate_photons(self, scattering_rate, sigma_thermal, exposure_time):
+    def generate_photons(self, scattering_rate, sigma_thermal, exposure_time, collection_efficiency=1):
         """
         Generate fluorescence photons
         """
         
-        # scattering rate and exposure give number of photonss
-        n_photons = int(exposure_time * scattering_rate)
+        # scattering rate and exposure give number of photons, but we'll only generate as many as the imaging system would capture
+        self.n_photons = int(exposure_time * scattering_rate * collection_efficiency)
         
         # initialize n_photons at each atom
-        photon_positions = np.tile(self.positions, (n_photons, 1, 1))
+        photon_positions = np.tile(self.positions, (self.n_photons, 1, 1))
         photon_positions = np.transpose(photon_positions, axes=[1,2,0])
         
         #each photon is gaussian distributed according to thermal motion               

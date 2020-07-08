@@ -68,6 +68,8 @@ d2_properties = {
     'recoil_temperature': (198.34, 'nk'),
     'doppler_shift': (2*np.pi * 4.1327, 'kHz'),
     'doppler_temperature': (125, 'uk'),
+    'Jg': (0.5, ''),
+    'Je': (1.5, ''),
     }
 
 d1_properties = {
@@ -81,6 +83,8 @@ d1_properties = {
     'recoil_energy': (2*np.pi * 1.8758 , 'kHz'),
     'recoil_temperature': (180.05, 'nk'),
     'doppler_shift': (2*np.pi * 3.7516, 'kHz'),
+    'Jg': (0.5, ''),
+    'Je': (0.5, ''),
     }
 
 hyperfine_constants = {

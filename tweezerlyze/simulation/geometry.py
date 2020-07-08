@@ -8,7 +8,7 @@ Created on Sun May 24 16:01:29 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from .lasers import Laser
-from . import constants as cs
+from ..calculation import constants as cs
 
 class Tweezers:
     def __init__(self, n_sites, spacing, angle, offset, wavelength, power, waist, **kwargs):

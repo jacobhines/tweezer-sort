@@ -22,16 +22,17 @@ class Optics():
         self.sigma_diffraction = wavelength/(2*self.NA)
         
     def apply_diffraction(self, photon_positions):
-        return np.random.normal(loc=photon_positions, scale=self.sigma_diffraction) #TODO: factor of 2?
+        #TODO: this is using a gaussian kernel for convenience; switch to correct PSF
+        return np.random.normal(loc=photon_positions, scale=self.sigma_diffraction)
         
 
 class Camera():
-    def __init__(self, pixel_size, sensor_size, gain, dark_mean, dark_std, position=(0,0)):
+    def __init__(self, pixel_size, sensor_size, gain, noise_mean, noise_std, position=(0,0)):
         
         self.pixel_size = pixel_size
         self.sensor_size = sensor_size
-        self.dark_mean = dark_mean
-        self.dark_std = dark_std
+        self.noise_mean = noise_mean
+        self.noise_std = noise_std
         self.gain = gain
         self.position = position
         
@@ -55,7 +56,7 @@ class Camera():
             raise Exception('Must set scale before exposing camera.')
         
         # base image has background and thermal noise
-        self.noise = np.random.normal(0, self.dark_std, self.sensor_size)
+        self.noise = np.random.normal(0, self.noise_std, self.sensor_size)
         
         # bin the photons into pixels
         x = photon_positions[0,:]
@@ -63,7 +64,7 @@ class Camera():
         self.counts = np.histogram2d(x, y, bins=self.pixel_bins)[0]
         
         # signal is counts amplfied by gain with constant offset
-        signal = self.gain*self.counts + self.dark_mean
+        signal = self.gain*self.counts + self.noise_mean
         
         # combine signal with noise
         image = signal + self.noise
