@@ -21,7 +21,7 @@ tweezer_options = {
     'spacing': (5,5), #um
     'angle': 0*np.pi/6, #rad
     'wavelength': 1064, #nm
-    'power': 100, #mW
+    'power': 10, #mW
     'waist': 1, #um
     'offset': (0,0) #um
     }
@@ -34,10 +34,13 @@ optics_options = {
 camera_options = {
     'pixel_size': (13.5, 13.5), #um
     'sensor_size': (1024, 1024), #px
-    'gain': 10,
+    'gain': 100,
+    'preamp_setting': 1, 
+    'amplifier_type': 'EM',
+    'readout_rate': 30, #MHz
+    'sensor_temperature': -70, #C
+    'exposure_time': 5e-3, #s
     'position': (4, 4), #px
-    'noise_mean': 500, 
-    'noise_std': 10,
     }
 
 imaging_laser_options = {
