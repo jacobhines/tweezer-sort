@@ -8,7 +8,7 @@ Created on Sun May 24 16:01:29 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from .lasers import Laser
-from ..calculation import constants as cs
+from ..calculation.dipoletrap import trapDepth
 
 class Tweezers:
     def __init__(self, n_sites, spacing, angle, offset, wavelength, power, waist, **kwargs):
@@ -29,33 +29,21 @@ class Tweezers:
         self.generate_sites()
         
     def set_trap_depth(self, trap_depth=None, atoms=None, verbose=False):
+        
         if trap_depth is not None:
             self.trap_depth = trap_depth
-            
         elif atoms is not None:
-            # saturation parameter
-            I = self.laser.intensity
-            I_sat = atoms.species.saturation_intensity('detuned', 'D2', 'linear')
-            # I_sat = 2*(np.pi**2)*(cs.hbar*cs.c)*(self.species.D2.linewidth)/(3*(self.wavelength**3))
-            s0 = I/I_sat
-            
-            # inverse detuning in linewidths
-            nu = self.laser.frequency
-            delta1 = (nu - atoms.species.D1.frequency)/(atoms.species.D1.linewidth*1e-6)
-            delta2 = (nu - atoms.species.D2.frequency)/(atoms.species.D2.linewidth*1e-6)
-            inv_delta = (1/3)*(1/delta1 + 2/delta2)
-            
-            # trap depth in uK
-            self.trap_depth = - cs.uK_per_MHz * (atoms.species.D2.linewidth / 8) * s0 * inv_delta
-            
-            if verbose:
-                print('I:', I)
-                print('I_sat:', I_sat)
-                print('s0:', s0)
-                print('trap depth:', self.trap_depth, 'uK')
-                
+            self.trap_depth = trapDepth(species=atoms.species,
+                                        intensity = None,
+                                        power = self.laser.power,
+                                        waist = self.laser.waist,
+                                        wavelength = self.laser.wavelength,
+                                        unit='K')
         else:
             raise Exception('Must provde atom properties or fix trap_depth')
+            
+        if verbose:
+            print('trap depth:', self.trap_depth, 'K')
             
     def set_sigma_thermal(self, sigma_thermal=None, atoms=None, verbose=False):
         if sigma_thermal is not None:
@@ -67,11 +55,11 @@ class Tweezers:
             trap_depth = self.trap_depth
             self.sigma_thermal = waist*np.sqrt(-0.5*np.log(1 - temperature/(2*trap_depth)))
             
-            if verbose:
-                print('sigma_thermal:', self.sigma_thermal, 'um')
-            
         else:
             raise Exception('Must provide atom properties or fix sigma_thermal')
+            
+        if verbose:
+            print('sigma_thermal:', self.sigma_thermal*1e6, 'um')
     
     def get_position(self, i, j):
         """
@@ -118,7 +106,7 @@ class Tweezers:
         Visualize the tweezers.
         """
         fig, ax = plt.subplots(figsize=(10,10))
-        r = self.positions
+        r = self.positions*1e6
         x = r[0, :]
         y = r[1, :]
         plt.scatter(x, y)

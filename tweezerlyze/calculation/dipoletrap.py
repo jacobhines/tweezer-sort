@@ -7,17 +7,16 @@ Created on Tue Jul  7 11:08:51 2020
 
 import numpy as np
 import scipy.constants as cnst
-from .steck_si import cesium
+from .steck import cesium
 from .intensity import saturationIntensity, peakIntensity
 from .unit_conversions import J_to_unit
 
 
-def depth_grimm_classical(species=cesium, wavelength=1064e-9, power=None, waist=None,
+def depthGrimmClassical(species=cesium, wavelength=1064e-9, power=None, waist=None,
           intensity=None, verbose=False, unit='Hz'):
     """
     Calculates trap depth following equation 10 in OPTICAL DIPOLE TRAPS FOR 
-    NEUTRAL ATOMS by Grimm and Weidemuller. (Tori method). This method
-    implicitly calculates saturation intensity.
+    NEUTRAL ATOMS by Grimm and Weidemuller.
 
     Parameters
     ----------
@@ -73,16 +72,15 @@ def depth_grimm_classical(species=cesium, wavelength=1064e-9, power=None, waist=
         print('depth:', depth, unit)
         print('')
         
-    return depth
+    return -depth
 
 
-def depth_steck_classical(species=cesium, wavelength=1064e-9, power=None,
+def depthSteckClassical(species=cesium, wavelength=1064e-9, power=None,
                           waist=None, intensity=None, verbose=False, unit='Hz',
                           polarization='sigma_plus', configuration='pumped_plus'):
     """
     Calculates trap depth following equation 1.76 in Quantum and Atom Optics
     by Steck. This method looks up the saturation intensity for D1 and D2.
-    (Jacob method).
 
     Parameters
     ----------
@@ -144,14 +142,14 @@ def depth_steck_classical(species=cesium, wavelength=1064e-9, power=None,
         print('depth:', depth, unit)
         print('')
         
-    return depth
+    return -depth
         
 
-def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=None, 
+def depthSteckQuantum(species=cesium, wavelength=1064e-9, power=None, waist=None, 
                         intensity=None, verbose=False, unit='Hz', method='simplified'):
     """
     Calculates trap depth following equations 7.304 and 7.457 in Quantum and
-    Atom Optics by Steck. (Ogi method).
+    Atom Optics by Steck.
 
     Parameters
     ----------
@@ -219,8 +217,8 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
     # and rad/s
     omega_drive = 2*np.pi*drive_frequency
     
-    # calculate shift for each transition
-    shift = {}
+    # calculate depth for each transition
+    depths = {}
     transitions = ['D2', 'D1']
     for transition in transitions:
         t = getattr(species, transition)
@@ -239,9 +237,9 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
             print('I:', I)
             print('')
         
-        shift[transition] = f(omega_transition, omega_drive, linewidth, Jg, Je, I)
+        depths[transition] = f(omega_transition, omega_drive, linewidth, Jg, Je, I)
         
-    depth = np.sum(list(shift.values())) #J
+    depth = np.sum(list(depths.values())) #J
 
     # change energy unit
     depth = J_to_unit(depth, unit)
@@ -249,4 +247,15 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
     if verbose:
         print('depth:', depth)
         
-    return depth
+    return -depth
+
+
+def trapDepth(method='steck_quantum', **kwargs):
+    if method == 'grimm_classical':
+        return depthGrimmClassical(**kwargs)
+    elif method == 'steck_classical':
+        return depthSteckClassical(**kwargs)
+    elif method == 'steck_quantum':
+        return depthSteckQuantum(**kwargs)
+    else:
+        raise Exception('Invalid method')

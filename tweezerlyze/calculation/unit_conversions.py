@@ -33,7 +33,25 @@ def J_to_unit(energy, unit):
         energy *= 1e-6/cnst.h
     elif unit == 'K':
         energy *= 1/cnst.Boltzmann
+    elif unit == 'uK':
+        energy *= 1e6/cnst.Boltzmann
     else:
-        raise Exception('Unit must be J, Hz, or K')
+        raise Exception('Unit must be J, Hz, MHz, K, or uK.')
         
     return energy
+
+
+def K_to_unit(temperature, unit):
+    Hz_per_K = 0.1309 * 1e12
+    
+    if unit == 'K':
+        return temperature
+    elif unit == 'uK':
+        return temperature*1e6
+    elif unit == 'Hz':
+        return temperature * Hz_per_K
+    elif unit == 'MHz':
+        return temperature * Hz_per_K * 1e-6
+    
+def convert(qty, startunit, endunit):
+    return #TODO: write this

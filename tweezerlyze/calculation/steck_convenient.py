@@ -10,6 +10,7 @@ Cesium properties pulled from D Steck, Cesium D Line Data
 import numpy as np
 from numpy import sqrt as s
 
+
 class quantity(float):
     def __new__(self, value, unit):
         return float.__new__(self, value)
@@ -38,7 +39,8 @@ class Atom():
         coeff = self.dme_coeffs[line][F][polarization][Fprime][mF] 
         transition = getattr(self, line)
         return coeff * transition.dme
-
+            
+            
 # line / F / polarization / Fprime / mF
 dme_coeffs = {
     'D2': {
@@ -363,15 +365,15 @@ def checkEntriesDME(Fprime_dict):
             
     return cumsum
             
-def saturation_intensity(line, polarization):
-    if (line == 'cycling') and (polarization == 'isotropic'):
-        return quantity(2.7059*10, 'W/m2')
-    elif (line == 'cycling') and (polarization == 'circular'):
-        return quantity(1.1023*10, 'W/m2')
-    elif (line == 'D2') and (polarization == 'linear'):
-        return quantity(1.6536*10, 'W/m2')
-    elif (line == 'D1') and (polarization == 'linear'):
-        return quantity(2.4981*10, 'W/m2')
+def saturation_intensity(frequency, line, polarization):
+    if (frequency == 'resonant') and (line == '45') and (polarization == 'isotropic'):
+        return quantity(2.7059, 'mW/cm2')
+    elif (frequency == 'detuned') and (line == 'D2') and (polarization == 'linear'):
+        return quantity(1.6536, 'mW/cm2')
+    elif (frequency == 'resonant') and (line == 'cycling') and (polarization == 'circular'):
+        return quantity(1.1023, 'mW/cm2')
+    elif (frequency == 'detuned') and (line == 'D1') and (polarization == 'linear'):
+        return quantity(2.4981, 'mW/cm2')
     else:
         raise Exception('Saturation intensity not precalcualted for this combination of frequency, line, and polarization.')
 
@@ -381,44 +383,44 @@ physical_properties = {
     'relative_natural_abundance': (1, ''),
     'nuclear lifetime': (np.inf, 's'),
     'atomic_mass': (2.20694695e-25, 'kg'),
-    'density_stp': (1.93 * 1e6 * 1e-3, 'kg/m3'),
-    'melting_point': (28.44 + 273.15, 'K'),
-    'boiling_point': (671 + 273.15, 'K'),
-    'specific_heat_capacity': (0.242 * 1e3, 'J/kg*K'),
+    'density_stp': (1.93, 'g/cm3'),
+    'melting_point': (28.44, 'degC'),
+    'boiling_point': (671, 'degC'),
+    'specific_heat_capacity': (0.242, 'J/g*K'),
     'molar_heat_capacity': (32.210, 'J/mol*K'),
     'vapor_pressure_stp': (1.3e-6, 'torr'),
     'nuclear_spin': (7/2, ''),
-    'ionization_limit': (3.89390532 * 1.602e-19, 'J'),
+    'ionization_limit': (3.89390532, 'eV'),
     }
 
 d2_properties = {
-    'frequency': (351.72571850 * 1e12, 'Hz'),
-    'transition_energy': (1.454620542 * 1.602e-19, 'J'),
-    'wavelength': (852.34727582 * 1e-9, 'm'),
-    'lifetime': (30.473 * 1e-9, 's,'),
-    'linewidth': (2 * np.pi * 5.2227 * 1e6, 'Hz'),
+    'frequency': (351.72571850, 'THz'),
+    'transition_energy': (1.454620542, 'eV'),
+    'wavelength': (852.34727582, 'nm'),
+    'lifetime': (30.473, 'ns,'),
+    'linewidth': (2*np.pi * 5.2227, 'MHz'),
     'oscillator_strength': (0.7148, ''),
-    'recoil_velocity': (3.5225 * 1e-3, 'm/s'),
-    'recoil_energy': (2*np.pi * 2.0663 * 1e3, 'Hz'),
-    'recoil_temperature': (198.34 * 1e-9, 'K'),
-    'doppler_shift': (2*np.pi * 4.1327 * 1e3, 'Hz'),
-    'doppler_temperature': (125 * 1e-6, 'K'),
+    'recoil_velocity': (3.5225, 'mm/s'),
+    'recoil_energy': (2*np.pi * 2.0663, 'kHz'),
+    'recoil_temperature': (198.34, 'nk'),
+    'doppler_shift': (2*np.pi * 4.1327, 'kHz'),
+    'doppler_temperature': (125, 'uk'),
     'Jg': (0.5, ''),
     'Je': (1.5, ''),
     'dme': (3.8014e-29, 'C*m'),
     }
 
 d1_properties = {
-    'frequency': (335.116048807 * 1e12, 'Hz'),
-    'transition_energy': (1.385928475 * 1.602e-19, 'J'),
-    'wavelength': (894.59295986 * 1e-9, 'm'),
-    'lifetime': (34.894 * 1e-9, 's'),
-    'linewidth': (2*np.pi * 4.5612 * 1e6, 'Hz'),
-    'oscillator_strength': (0.3438, ''),
-    'recoil_velocity': (3.3561 * 1e-3, 'm/s'),
-    'recoil_energy': (2*np.pi * 1.8758 * 1e3 , 'Hz'),
-    'recoil_temperature': (180.05 * 1e-9, 'K'),
-    'doppler_shift': (2*np.pi * 3.7516 * 1e3, 'Hz'),
+    'frequency': (335.116048807, 'THz'),
+    'transition_energy': (1.385928475, 'eV'),
+    'wavelength': (894.59295986, 'nm'),
+    'lifetime': (34.894, 'ns,'),
+    'linewidth': (2*np.pi * 4.5612, 'MHz'),
+    'oscillator_strength': (0.3438,''),
+    'recoil_velocity': (3.3561, 'mm/s'),
+    'recoil_energy': (2*np.pi * 1.8758 , 'kHz'),
+    'recoil_temperature': (180.05, 'nk'),
+    'doppler_shift': (2*np.pi * 3.7516, 'kHz'),
     'Jg': (0.5, ''),
     'Je': (0.5, ''),
     'dme': (2.7020e-29, 'C*m'),

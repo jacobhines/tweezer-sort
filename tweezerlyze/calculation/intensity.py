@@ -7,7 +7,7 @@ Created on Tue Jul 14 18:23:18 2020
 
 import numpy as np
 import scipy.constants as cnst
-from .steck_si import cesium
+from .steck import cesium
 
 
 def peakIntensity(power, waist):

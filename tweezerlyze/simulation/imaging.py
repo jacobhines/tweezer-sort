@@ -10,8 +10,6 @@ from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import matplotlib.font_manager as fm
 fontprops = fm.FontProperties(size=18)
 from .lasers import Laser
-from astropy.modeling.functional_models import AiryDisk2D
-
 
 # preamp setting / amplifier type / readout rate
 # unit: electrons per A/D count
@@ -19,26 +17,26 @@ from astropy.modeling.functional_models import AiryDisk2D
 sensitivity_dict = {
     1: {
         'EM': {
-            30: 18.6,
-            20: 17.4,
-            10: 16.3,
-            1: 16.4,
+            30e6: 18.6,
+            20e6: 17.4,
+            10e6: 16.3,
+            1e6: 16.4,
             },
         'conventional': {
-            1: 3.44,
-            0.1: 3.47,
+            1e6: 3.44,
+            0.1e6: 3.47,
             }
         },
     2: {
         'EM': {
-            30: 5.89,
-            20: 4.76,
-            10: 4.05,
-            1: 3.97,
+            30e6: 5.89,
+            20e6: 4.76,
+            10e6: 4.05,
+            1e6: 3.97,
             },
         'conventional': {
-            1: 0.820,
-            0.1: 0.830,
+            1e6: 0.820,
+            0.1e6: 0.830,
             }
         }
     }
@@ -51,26 +49,26 @@ sensitivity_dict = {
 single_pixel_noise_dict = {
     1: {
         'EM': {
-            30: 250,
-            20: 157,
-            10: 86.2,
-            1: 25.3,
+            30e6: 250,
+            20e6: 157,
+            10e6: 86.2,
+            1e6: 25.3,
             },
         'conventional': {
-            1: 6.81,
-            0.1: 9.61,
+            1e6: 6.81,
+            0.1e6: 9.61,
             }
         },
     2: {
         'EM': {
-            30: 174,
-            20: 73.1,
-            10: 41.0,
-            1: 12.4,
+            30e6: 174,
+            20e6: 73.1,
+            10e6: 41.0,
+            1e6: 12.4,
             },
         'conventional': {
-            1: 4.97,
-            0.1: 3.70,
+            1e6: 4.97,
+            0.1e6: 3.70,
             }
         }
     }
@@ -172,7 +170,7 @@ class IxonUltra888():
         self.minimum_dark_current = minimum_dark_current
         self.quantum_efficiency = quantum_efficiency
         self.signal_offset = signal_offset
-        self.dark_current = getDarkCurrent(sensor_temperature, unit='C')
+        self.dark_current = getDarkCurrent(sensor_temperature, unit='K')
         self.dark_charge = self.dark_current * self.exposure_time
         
     def set_scale(self, magnification):
@@ -263,7 +261,7 @@ class IxonUltra888():
         if scalebar:
             scalebar = AnchoredSizeBar(ax.transData,
                                scalebar_length/self.scale[0],
-                               f'{scalebar_length} um',
+                               f'{1e6*scalebar_length} um',
                                'upper right', 
                                pad=1,
                                color='white',
@@ -290,7 +288,7 @@ class Imaging():
         self.laser = Laser(**laser_options)
         
         self.optics = Optics(**optics_options)
-        self.optics.set_diffraction(self.laser.wavelength*1e-3)
+        self.optics.set_diffraction(self.laser.wavelength)
         
         self.camera = IxonUltra888(**camera_options)
         self.camera.set_scale(self.optics.magnification)

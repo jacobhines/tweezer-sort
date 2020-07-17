@@ -7,6 +7,7 @@ Created on Mon May 25 15:03:01 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
+from ..calculation.unit_conversions import K_to_unit
 
 
 class Atoms():
@@ -14,12 +15,11 @@ class Atoms():
         self.species = species        
         self.p_filling = p_filling
 
-        self.MHz_per_uK = 0.1309       
         self.temperature = temperature
-        self.thermal_energy = 0.5*self.temperature*self.MHz_per_uK
+        # self.thermal_energy = 0.5* K_to_unit(self.temperature*self.Hz_per_K
         
         line = getattr(self.species, imaging_transition)
-        self.wavelength = line.wavelength*1e-3
+        self.wavelength = line.wavelength
         
         self.atoms_generated = False
         self.photons_generated = False
@@ -64,7 +64,7 @@ class Atoms():
             raise Exception('Must generate atoms before plotting them')
         
         fig, ax = plt.subplots(figsize=(10,10))
-        r = self.positions
+        r = self.positions*1e6
         x = r[0, :]
         y = r[1, :]
         plt.scatter(x, y)
@@ -81,7 +81,7 @@ class Atoms():
             raise Exception('Must generate photons before plotting them')
         
         fig, ax = plt.subplots(figsize=(10,10))
-        r = self.photon_positions
+        r = self.photon_positions*1e6
         x = r[0, :]
         y = r[1, :]
         plt.scatter(x, y)

@@ -5,12 +5,9 @@ Created on Mon May 25 17:33:18 2020
 @author: Jacob
 """
 
-from .. calculation.steck import cesium
 from . atoms import Atoms
 from . geometry import Tweezers
 from . imaging import Imaging
-
-import numpy as np
 
 
 class Experiment:

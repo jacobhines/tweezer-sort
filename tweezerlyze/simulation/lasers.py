@@ -14,14 +14,15 @@ class Laser():
         Parameters
         ----------
         wavelength : float
-            wavelength in nm.
+            wavelength in m.
         power : float
-            power in mW.
+            power in W.
         waist : TYPE
-            beam waist in um.
+            beam waist in m.
         """
+        
         self.wavelength = wavelength
         self.power = power
         self.waist = waist
-        self.intensity = 2*power/(np.pi*((waist*1e-4)**2)) #mW/cm2
-        self.frequency = 1e-12 * cs.c / (self.wavelength*1e-9) #THz
+        self.intensity = 2*power/(np.pi*waist**2) #W/m2
+        self.frequency = cs.c / (self.wavelength*1e-9) #Hz
