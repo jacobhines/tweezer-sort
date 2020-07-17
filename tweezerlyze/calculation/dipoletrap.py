@@ -5,209 +5,19 @@ Created on Tue Jul  7 11:08:51 2020
 @author: Jacob
 """
 
-from .steck_si import cesium
 import numpy as np
 import scipy.constants as cnst
+from .steck_si import cesium
+from .intensity import saturationIntensity, peakIntensity
+from .unit_conversions import J_to_unit
 
 
-def J_to_unit(energy, unit):
-    """
-    Converts energy from J to specified unit.
-
-    Parameters
-    ----------
-    energy : float
-        Energy to convert in Joules.
-    unit : string
-        Unit to convert to.
-
-    Returns
-    -------
-    energy : float
-        Energy in specified unit.
-
-    """
-    
-    if unit == 'J':
-        energy *= 1
-    elif unit == 'Hz':
-        energy *= 1/cnst.h
-    elif unit == 'MHz':
-        energy *= 1e-6/cnst.h
-    elif unit == 'K':
-        energy *= 1/cnst.Boltzmann
-    else:
-        raise Exception('Unit must be J, Hz, or K')
-        
-    return energy
-
-
-def getIntensity(power, waist):
-    """
-    Returns intensity for given power (W) and waist (m).
-
-    Parameters
-    ----------
-    power : float
-        Power in W. The default is None.
-    waist : float
-        Beam wasit in m. The default is None.
-
-    Returns
-    -------
-    float
-        Intensity in w/m2.
-
-    """
-    
-    return 2*power/(np.pi*(waist**2))
-
-
-def depth_oscillator(species=cesium, wavelength=1064e-9, power=None, waist=None,
+def depth_grimm_classical(species=cesium, wavelength=1064e-9, power=None, waist=None,
           intensity=None, verbose=False, unit='Hz'):
     """
     Calculates trap depth following equation 10 in OPTICAL DIPOLE TRAPS FOR 
     NEUTRAL ATOMS by Grimm and Weidemuller. (Tori method). This method
     implicitly calculates saturation intensity.
-
-    Parameters
-    ----------
-    species : TYPE, optional
-        DESCRIPTION. The default is cesium.
-    wavelength : TYPE, optional
-        DESCRIPTION. The default is 1064e-9.
-    power : TYPE, optional
-        DESCRIPTION. The default is None.
-    waist : TYPE, optional
-        DESCRIPTION. The default is None.
-    intensity : TYPE, optional
-        DESCRIPTION. The default is None.
-    verbose : TYPE, optional
-        DESCRIPTION. The default is False.
-    unit : TYPE, optional
-        DESCRIPTION. The default is 'Hz'.
-
-    Raises
-    ------
-    Exception
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    
-    # frequency of drive field in Hz
-    drive_frequency = cnst.c/wavelength
-    
-    # and rad/s
-    omega_drive = 2*np.pi*drive_frequency
-    
-    # intensity in W/m2
-    if intensity is None:
-        I = getIntensity(power, waist)
-    else:
-        I = intensity
-    
-    def u2level(omega_transition, linewidth):
-        prefactor = (3*np.pi*cnst.c**2)/(2*omega_transition**3)
-        freqFactor = -linewidth*(1/(omega_transition-omega_drive) + 1/(omega_transition+omega_drive))
-        return prefactor*freqFactor*I
-    
-    depth = (2/3)*u2level(2*np.pi*species.D2.frequency, species.D2.linewidth) \
-            + (1/3)*u2level(2*np.pi*species.D1.frequency, species.D1.linewidth)
-        
-    # change energy unit
-    depth = J_to_unit(depth, unit)
-            
-    if verbose:
-        print('depth:', depth)
-        print('')
-        
-    return depth
-
-
-def depth_steck_classical(species=cesium, wavelength=1064e-9, power=None,
-                          waist=None, intensity=None, verbose=False, unit='Hz'):
-    """
-    Calculates trap depth following equation 1.76 in Quantum and Atom Optics
-    by Steck. This method looks up the saturation intensity for D1 and D2.
-    (Jacob method).
-
-    Parameters
-    ----------
-    species : TYPE, optional
-        DESCRIPTION. The default is cesium.
-    wavelength : TYPE, optional
-        DESCRIPTION. The default is 1064e-9.
-    power : TYPE, optional
-        DESCRIPTION. The default is None.
-    waist : TYPE, optional
-        DESCRIPTION. The default is None.
-    intensity : TYPE, optional
-        DESCRIPTION. The default is None.
-    verbose : TYPE, optional
-        DESCRIPTION. The default is False.
-    unit : TYPE, optional
-        DESCRIPTION. The default is 'Hz'.
-
-    Raises
-    ------
-    Exception
-        DESCRIPTION.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    
-    # frequency of laser field in Hz
-    drive_frequency = cnst.c/wavelength
-    
-    # and rad/s
-    omega_drive = 2*np.pi*drive_frequency
-    
-    # intensity in W/m2
-    if intensity is None:
-        I = getIntensity(power, waist)
-    else:
-        I = intensity
-        
-    weights = {'D2': 2/3,
-               'D1': 1/3}
-    
-    def stark(omega_transition, linewidth, I_sat):
-        prefactor = cnst.hbar * linewidth**2 / 8
-        freqfactor = 1/(omega_drive - omega_transition) - 1/(omega_drive + omega_transition)
-        s0 = I/I_sat
-        return prefactor*freqfactor*s0
-    
-    depth = 0
-    
-    for transition in weights:           
-        t = getattr(species, transition)
-        I_sat = species.saturation_intensity('detuned', transition, 'linear')
-        depth += weights[transition]*stark(2*np.pi*t.frequency, t.linewidth, I_sat)
-        
-    # change energy unit
-    depth = J_to_unit(depth, unit)
-            
-    if verbose:
-        print('depth:', depth)
-        print('')
-        
-    return depth
-        
-        
-def depth_oscillator_rwa(species=cesium, wavelength=1064e-9, power=None,
-                            waist=None, intensity=None, verbose=False, unit='Hz'):
-    """
-    Calculates trap depth following equation 2 in Loading an optical dipole trap
-    by Kuppens et al. (Jacob method).
 
     Parameters
     ----------
@@ -225,44 +35,115 @@ def depth_oscillator_rwa(species=cesium, wavelength=1064e-9, power=None,
     verbose : bool, optional
         Set to True to display debugging values. The default is False.
     unit : str, optional
-        Unit for the returned trap depth, can be J, K, or Hz. The default is 'Hz'.
+        Unit for the returned trap depth, can be J, K, Hz or MHz. The default is 'Hz'.
 
     Returns
     -------
     depth : float
         Trap depth in specified units.
-        
+
     """
+    
+    # frequency of drive field in Hz
+    drive_frequency = cnst.c/wavelength
+    # and rad/s
+    omega_drive = 2*np.pi*drive_frequency
     
     # intensity in W/m2
     if intensity is None:
-        I = getIntensity(power, waist)
+        I = peakIntensity(power, waist)
     else:
         I = intensity
+    
+    # classical depth for each transition
+    def u2level(omega_transition, linewidth):
+        prefactor = (3*np.pi*cnst.c**2)/(2*omega_transition**3)
+        freqfactor = -linewidth*(1/(omega_transition-omega_drive) + 1/(omega_transition+omega_drive))
+        return prefactor*freqfactor*I
+    
+    # full depth is weighted by transition
+    depth = (2/3)*u2level(2*np.pi*species.D2.frequency, species.D2.linewidth) \
+            + (1/3)*u2level(2*np.pi*species.D1.frequency, species.D1.linewidth)
         
-    # saturation parameter
-    I_sat = species.saturation_intensity('detuned', 'D2', 'linear')
-    s0 = I/I_sat
-    
-    # inverse detuning in linewidths
-    drive_frequency = cnst.c/wavelength #Hz 
-    delta1 = 2*np.pi*(drive_frequency - species.D1.frequency)/(species.D1.linewidth)
-    delta2 = 2*np.pi*(drive_frequency - species.D2.frequency)/(species.D2.linewidth)
-    inv_delta = (1/3)*(1/delta1 + 2/delta2)
-    
-    depth = cnst.hbar * (species.D2.linewidth / 8) * s0 * inv_delta
-    
     # change energy unit
     depth = J_to_unit(depth, unit)
-
+    
     if verbose:
-        print('I:', I)
-        print('I_sat:', I_sat)
-        print('s0:', s0)
-        print('inv_delta', inv_delta)
+        print('intensity', I)
         print('depth:', depth, unit)
         print('')
+        
+    return depth
+
+
+def depth_steck_classical(species=cesium, wavelength=1064e-9, power=None,
+                          waist=None, intensity=None, verbose=False, unit='Hz',
+                          polarization='sigma_plus', configuration='pumped_plus'):
+    """
+    Calculates trap depth following equation 1.76 in Quantum and Atom Optics
+    by Steck. This method looks up the saturation intensity for D1 and D2.
+    (Jacob method).
+
+    Parameters
+    ----------
+    species : Atom class, optional
+        Class containing atomic properties, as defined in steck.py. The default
+        is cesium.
+    wavelength : float, optional
+        Trapping beam wavelength in m. The default is 1064e-9.
+    power : float, optional
+        Trapping beam power in W. The default is None.
+    waist : float, optional
+        Trapping beam waist in m. The default is None.
+    intensity : float, optional
+        Trapping beam intensity in W/m2. The default is None.
+    verbose : bool, optional
+        Set to True to display debugging values. The default is False.
+    unit : str, optional
+        Unit for the returned trap depth, can be J, K, Hz or MHz. The default is 'Hz'.
+
+    Returns
+    -------
+    depth : float
+        Trap depth in specified units.
+
+    """
+    
+    # frequency of laser field in Hz
+    drive_frequency = cnst.c/wavelength
+    # and rad/s
+    omega_drive = 2*np.pi*drive_frequency
+    
+    # intensity in W/m2
+    if intensity is None:
+        I = peakIntensity(power, waist)
+    else:
+        I = intensity
+    
+    # classical depth for each transition
+    def lineDepth(omega_transition, linewidth, I_sat):
+        prefactor = cnst.hbar * linewidth**2 / 8
+        freqfactor = 1/(omega_drive - omega_transition) - 1/(omega_drive + omega_transition)
+        s0 = I/I_sat
+        return prefactor*freqfactor*s0
+    
+    
+    # total depth is summed over transitions    
+    lines = ['D2', 'D1']
+    depth = 0
+    for line in lines:           
+        t = getattr(species, line)
+        I_sat = saturationIntensity(species, line, far_detuned=True)
+        depth += lineDepth(2*np.pi*t.frequency, t.linewidth, I_sat)
+        
+    # change energy unit
+    depth = J_to_unit(depth, unit)
             
+    if verbose:
+        print('intensity:', I)
+        print('depth:', depth, unit)
+        print('')
+        
     return depth
         
 
@@ -288,14 +169,17 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
     verbose : bool, optional
         Set to True to display debugging values. The default is False.
     unit : str, optional
-        Unit for the returned trap depth, can be J, K, or Hz. The default is 'Hz'.
+        Unit for the returned trap depth, can be J, K, Hz or MHz. The default is 'Hz'.
+    method : str, optional
+        Method for calculating stark shift, can be 'full' or 'simplified'. Should
+        be equivalent.
 
     Returns
     -------
     depth : float
         Trap depth in specified units.
         
-    """
+    """   
 
     # Steck quantum optics 7.296 connects reduced matrix element with linewidth
     def rMatrixElement(omega_transition, linewidth, Jg, Je):
@@ -314,9 +198,9 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
     def OpticalStarkShiftSimplified(omega_transition, omega_drive, linewidth, Jg, Je, I):
         degeneracyfactor = (2*Je+1)/(2*Jg+1)
         freqfactor = omega_transition**2*(omega_transition**2-omega_drive**2)
-        return -1*degeneracyfactor*4*np.pi*cnst.c**2*linewidth*I/freqfactor
+        return -1*degeneracyfactor*np.pi*cnst.c**2*linewidth*I/freqfactor
     
-    # choose method
+    # choose calculation method (should be equivalent)
     if method =='simplified':
         f = OpticalStarkShiftSimplified
     elif method == 'full':
@@ -326,24 +210,22 @@ def depth_steck_quantum(species=cesium, wavelength=1064e-9, power=None, waist=No
         
     # intensity in W/m2
     if intensity is None:
-        I = getIntensity(power, waist)
+        I = peakIntensity(power, waist)
     else:
         I = intensity
         
     # frequency of laser field in Hz
     drive_frequency = cnst.c/wavelength
-    
     # and rad/s
     omega_drive = 2*np.pi*drive_frequency
-        
-    shift = {}
     
+    # calculate shift for each transition
+    shift = {}
     transitions = ['D2', 'D1']
     for transition in transitions:
         t = getattr(species, transition)
         
         omega_transition = 2*np.pi*t.frequency
-        
         linewidth = t.linewidth
         Jg = t.Jg
         Je = t.Je
