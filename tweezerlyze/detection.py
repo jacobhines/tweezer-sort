@@ -159,7 +159,7 @@ class DetectionBot():
                 c = plt.Circle((x, y), r, color='yellow', linewidth=2, fill=False)
                 ax.add_patch(c)
             
-            if text:
+            if (text) and (self.blob_indices is not None):
                 i, j = self.blob_indices[idx]
                 
                 
