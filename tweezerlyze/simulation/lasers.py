@@ -6,7 +6,7 @@ Created on Mon May 25 17:34:34 2020
 """
 
 import numpy as np
-from ..calculation import constants as cs
+import scipy.constants as cnst
 
 class Laser():
     def __init__(self, wavelength, power, waist):
@@ -25,4 +25,4 @@ class Laser():
         self.power = power
         self.waist = waist
         self.intensity = 2*power/(np.pi*waist**2) #W/m2
-        self.frequency = cs.c / (self.wavelength*1e-9) #Hz
+        self.frequency = cnst.c / (self.wavelength*1e-9) #Hz

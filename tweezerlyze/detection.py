@@ -116,7 +116,11 @@ class DetectionBot():
         image = self.normalize(image)
         self.image = image
         self.blob_pixels, self.blob_sizes = self.get_blob_pixels(image, **blob_kwargs)
-        self.blob_indices = self.get_blob_indices(self.blob_pixels)
+        
+        if self.reference_pixels is not None:
+            self.blob_indices = self.get_blob_indices(self.blob_pixels)
+            
+        return self.blob_pixels
         
     def set_blob_mask(self, n_sites):
         if self.blob_indices is None:
