@@ -680,7 +680,10 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
-Description: # tweezerlyze
+Description: # Tweezerlyze
         Measures, interprets, and sorts atoms held in an array of optical tweezers.
+        
+        # Development Installation
+        pip install -e \path\to\local\repository
         
 Platform: UNKNOWN
