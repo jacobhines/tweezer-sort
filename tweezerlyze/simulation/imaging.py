@@ -5,8 +5,10 @@ Created on Sun May 24 15:15:51 2020
 @author: Jacob
 """
 import numpy as np
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.font_manager as fm
 fontprops = fm.FontProperties(size=18)
 from .lasers import Laser
@@ -118,6 +120,11 @@ def getDarkCurrent(T, unit='K'):
 quantum_efficiency = 0.55
 
 
+# Noise Factor represents the additional noise over the noise expected 
+# from the amplification process.
+noise_factor = np.sqrt(2)
+
+
 # We observe a constant offset of ~500 counts, reagardless of camera settings
 signal_offset = 500
 
@@ -172,6 +179,7 @@ class IxonUltra888():
         self.signal_offset = signal_offset
         self.dark_current = getDarkCurrent(sensor_temperature, unit='K')
         self.dark_charge = self.dark_current * self.exposure_time
+        # self.
         
     def set_scale(self, magnification):
         # scale of image in um/px
@@ -194,6 +202,7 @@ class IxonUltra888():
         incident_photons = np.histogram2d(x, y, bins=self.pixel_bins)[0]
         
         # to account for shot noise we resample our binned photons from a poisson distribution
+        # TODO: should noise factor be here?
         incident_photons = np.random.poisson(incident_photons)
         
         # photoelectrons is incident photons multiplied by quantum efficiency
@@ -202,14 +211,14 @@ class IxonUltra888():
         # add pre-gain photoelectron noise sources
         dark_noise = np.random.poisson(self.dark_charge, photoelectrons.shape)
         charge_noise = np.random.poisson(self.clock_induced_charge_occurence, photoelectrons.shape)
-        photoelectrons += dark_noise + charge_noise
+        photoelectrons += (dark_noise + charge_noise) * noise_factor
         
         # signal electrons are photoelectrons multipled by EM gain
         signal_electrons = photoelectrons * self.gain
         
         # combine signal with electron readout noise to get image electrons
-        noise = np.random.normal(0, self.single_pixel_noise, self.sensor_size)
-        image_electrons = signal_electrons + noise
+        readout_noise = np.random.normal(0, self.single_pixel_noise, self.sensor_size)
+        image_electrons = signal_electrons + readout_noise
         
         # convert electrons to digital camera signal
         image = image_electrons / self.sensitivity
@@ -218,10 +227,14 @@ class IxonUltra888():
         # add in offset
         image += self.signal_offset
         signal += self.signal_offset
+        
+        # apply saturation
+        image[image>2**16-1] = 2**16-1
+        signal[signal>2**16-1] = 2**16-1
 
         # convert to uint16
-        self.signal = signal.astype('uint16')
         self.image = image.astype('uint16')
+        self.signal = signal.astype('uint16')
         
     
     def grab_image(self):
@@ -246,17 +259,22 @@ class IxonUltra888():
             
         return self.image_cropped
     
-    def show_image(self, cropped=True, title=None, colorbar=False, scalebar=False, scalebar_length=None):
+    def show_image(self, image=None, cropped=True, title=None, colorbar=False, scalebar=False, scalebar_length=None):
         """
         Displays the most recently acquired image.
         """
-        if cropped:
-            image = self.image_cropped
-        else:
-            image = self.image
         
+        if image is None:
+            if cropped:
+                image = self.image_cropped
+            else:
+                image = self.image
+            
         fig, ax = plt.subplots(figsize=(15,10))
         plt.imshow(image.T, origin='lower')
+        
+        if title:
+            plt.title(title)
         
         if scalebar:
             scalebar = AnchoredSizeBar(ax.transData,
@@ -271,16 +289,17 @@ class IxonUltra888():
                                fontproperties=fontprops)
     
             ax.add_artist(scalebar)
-
-        if colorbar:
-            plt.colorbar(label='counts', pad=0.01)
-            
-        if title:
-            plt.title(title)
             
         plt.xlabel('x (px)')
         plt.ylabel('y (px)')
         fig.patch.set_facecolor('white')
+        
+        if colorbar:
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            plt.colorbar(cax=cax, label='counts')
+        
+        plt.show()
         
         
 class Imaging():

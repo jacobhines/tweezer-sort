@@ -28,7 +28,13 @@ def peakIntensity(power, waist):
 
     """
     
-    return 2*power/(np.pi*(waist**2))
+    if type(waist) == tuple:
+        (waist_x, waist_y) = waist
+    else:
+        waist_x = waist
+        waist_y = waist
+    
+    return 2*power/(np.pi*waist_x*waist_y)
 
 
 def saturationIntensity(species=cesium, line='D2', F=4, Fprime=5, 
