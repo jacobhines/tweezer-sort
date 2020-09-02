@@ -6,7 +6,6 @@ Created on Thu Jun 11 18:13:37 2020
 """
 
 from .detection import DetectionBot
-from .sorting import SortingBot
 
 class TweezerBot():
     pass

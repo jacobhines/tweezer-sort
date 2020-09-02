@@ -149,37 +149,46 @@ class DetectionBot():
             
         fig, ax = plt.subplots(figsize=(6, 6))
     
-        ax.imshow(image.T, origin='lower', cmap=cmap)
+        ax.imshow(image.T, cmap=cmap)
         
         for idx, blob in enumerate(blobs):
             x, y = blob
             
+            if self.blob_indices is not None:
+                    i, j = self.blob_indices[idx]
+                    
+                    if true_mask is not None:
+                        try:
+                            if (i < 0) or (j < 0):
+                                color = 'red'
+                            elif true_mask[i,j] == self.blob_mask[i,j]:
+                                color = 'white'
+                            else:
+                                color = 'red'
+                        except:
+                            color = 'red'
+                    else:
+                        color = 'white'
+                    plt.text(x, y, f'({i},{j})', color=color, fontdict={'size':15})
+
+            else:
+                    color = 'white'
+                    if true_mask is not None:
+                        if not true_mask[idx]:
+                            color = 'red'
+            
             if circles:
                 r = sizes[idx]
-                c = plt.Circle((x, y), r, color='yellow', linewidth=2, fill=False)
+                c = plt.Circle((x, y), r, color=color, linewidth=2, fill=False)
                 ax.add_patch(c)
             
-            if (text) and (self.blob_indices is not None):
-                i, j = self.blob_indices[idx]
-                
-                
-                if true_mask is not None:
-                    try:
-                        if (i < 0) or (j < 0):
-                            color = 'red'
-                        elif true_mask[i,j] == self.blob_mask[i,j]:
-                            color = 'white'
-                        else:
-                            color = 'red'
-                    except:
-                        color = 'red'
-                else:
-                    color = 'white'
-                    
-                plt.text(x, y, f'({i},{j})', color=color, fontdict={'size':15})
+            
+            if text:    
+                plt.text(x, y-10, f'{idx}', color=color, fontdict={'size':12})
 
         ax.set_axis_off()
         if title:
             plt.title(title)
         plt.tight_layout()
-        plt.show()
+        
+        return fig, ax
