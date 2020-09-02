@@ -24,5 +24,12 @@ class Laser():
         self.wavelength = wavelength
         self.power = power
         self.waist = waist
-        self.intensity = 2*power/(np.pi*waist**2) #W/m2
+        
+        if type(waist) == tuple:
+            (waist_x, waist_y) = waist
+        else:
+            waist_x = waist
+            waist_y = waist
+        
+        self.intensity = 2*power/(np.pi*waist_x*waist_y) #W/m2
         self.frequency = cnst.c / (self.wavelength*1e-9) #Hz

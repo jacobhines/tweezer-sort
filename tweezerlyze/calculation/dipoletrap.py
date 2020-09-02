@@ -250,12 +250,15 @@ def depthSteckQuantum(species=cesium, wavelength=1064e-9, power=None, waist=None
     return -depth
 
 
-def trapDepth(method='steck_quantum', **kwargs):
+def trapDepth(power=None, waist=None, intensity=None, method='steck_quantum', **kwargs):
+    if not ((power and waist) or (intensity)):
+        raise Exception('Must provide power and waist or intensity.')
+        
     if method == 'grimm_classical':
-        return depthGrimmClassical(**kwargs)
+        return depthGrimmClassical(power=power, waist=waist, intensity=intensity, **kwargs)
     elif method == 'steck_classical':
-        return depthSteckClassical(**kwargs)
+        return depthSteckClassical(power=power, waist=waist, intensity=intensity, **kwargs)
     elif method == 'steck_quantum':
-        return depthSteckQuantum(**kwargs)
+        return depthSteckQuantum(power=power, waist=waist, intensity=intensity, **kwargs)
     else:
         raise Exception('Invalid method')

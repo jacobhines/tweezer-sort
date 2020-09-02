@@ -53,7 +53,9 @@ class Tweezers:
             waist = self.laser.waist
             temperature = atoms.temperature
             trap_depth = self.trap_depth
-            self.sigma_thermal = waist*np.sqrt(-0.5*np.log(1 - temperature/(2*trap_depth)))
+            sigma_thermal = [w*np.sqrt(-0.5*np.log(1 - temperature/(2*trap_depth))) for w in waist]
+            
+            self.sigma_thermal = tuple(sigma_thermal)
             
         else:
             raise Exception('Must provide atom properties or fix sigma_thermal')

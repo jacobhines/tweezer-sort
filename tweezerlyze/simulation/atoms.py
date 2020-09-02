@@ -46,8 +46,17 @@ class Atoms():
         photon_positions = np.tile(self.positions, (self.n_photons, 1, 1))
         photon_positions = np.transpose(photon_positions, axes=[1,2,0])
         
-        #each photon is gaussian distributed according to thermal motion               
-        photon_positions = np.random.normal(loc=photon_positions, scale=sigma_thermal)
+        #each photon is gaussian distributed according to thermal motion   
+        if type(sigma_thermal) == tuple:
+            (sigma_thermal_x, sigma_thermal_y) = sigma_thermal
+        else:
+            sigma_thermal_x = sigma_thermal
+            sigma_thermal_y = sigma_thermal
+        scale_template = np.ones(photon_positions.shape[1:])          
+        scale = np.array([sigma_thermal_x*scale_template, 
+                          sigma_thermal_y*scale_template])
+        
+        photon_positions = np.random.normal(loc=photon_positions, scale=scale)
         xarr = photon_positions[0,:]
         yarr = photon_positions[1,:]
         self.photon_positions = np.stack([xarr.flatten(), yarr.flatten()])
