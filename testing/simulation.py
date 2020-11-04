@@ -20,7 +20,7 @@ experiment_options['tweezer_options']['n_sites'] = (1,1)
 
 expt_reference = Experiment(**experiment_options)
 expt_reference.load_atoms()
-expt_reference.image_atoms(imaging_time=1000)
+expt_reference.image_atoms(imaging_time=10000)
 
 roi = {
     'xmin': 0,
@@ -29,24 +29,24 @@ roi = {
     'ymax': 50,
     }
     
-expt_reference.show_atoms(roi)
+expt_reference.show_atoms(roi=roi)
 reference_image = expt_reference.imaging.camera.image_cropped
 
 np.save('atoms_reference.npy', reference_image)
 
 # generate sparsely filled image
 experiment_options['atom_options']['p_filling'] = 1
-experiment_options['tweezer_options']['n_sites'] = (0,0)
+experiment_options['tweezer_options']['n_sites'] = (10,1)
 
 expt_sparse = Experiment(**experiment_options)
 expt_sparse.load_atoms()
 
 # times = 2**np.arange(0, 11)
-times = [1]
+times = [10000]
 
 for t in times:
     expt_sparse.image_atoms(imaging_time=t)
-    expt_sparse.show_atoms(roi, colorbar=True, title=f'Readoute rate = {rr/1e6} MHz')
+    expt_sparse.show_atoms(roi=roi, colorbar=True, title=f'Readoute rate = {rr/1e6} MHz')
 
 image = expt_sparse.imaging.camera.image_cropped
 
