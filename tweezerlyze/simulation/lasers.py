@@ -24,13 +24,17 @@ class Laser():
         self.wavelength = wavelength
         self.power = power
         
+        print(waist)
+        
         # waist should be a length 2 iterable
         try:
+            print('hi')
             iter(waist)
+            print(len(waist)==2)
             assert(len(waist)==2)
         except TypeError:
             waist = (waist, waist)
-        else:
+        except:
             raise Exception('Waist must be a scalar or a length-2 iterable')
         
         self.waist = waist
