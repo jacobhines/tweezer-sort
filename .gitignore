@@ -10,3 +10,5 @@ tweezerlyze.egg-info/dependency_links.txt
 tweezerlyze.egg-info/SOURCES.txt
 *.npy
 *.jpg
+testing/atoms_reference.npy
+testing/atoms_sparse.npy

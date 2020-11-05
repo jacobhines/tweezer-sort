@@ -10,12 +10,26 @@ import matplotlib.pyplot as plt
 from .lasers import Laser
 from ..calculation.dipoletrap import trapDepth
 
+class Tweezer:
+    def __init__(self, position, indices, avg_filling):
+        self.position = position
+        self.indices = indices
+        self.avg_filling = avg_filling
+        
+
 class Tweezers:
-    def __init__(self, n_sites, spacing, angle, offset, wavelength, power, waist, **kwargs):
+    def __init__(self, n_sites, spacing, angle, offset, wavelength, power, waist,
+                 avg_filling, filling_distribution='binomial',
+                 filling_distribution_kwargs={}):
+        
         self.n_sites = n_sites
         self.spacing = spacing
         self.angle = angle
         self.offset=offset
+        
+        self.avg_filling = avg_filling
+        self.filling_distribution = filling_distribution
+        self.filling_distribution_kwargs = filling_distribution_kwargs
         
         self.occupancies = None
         self.indices = None
@@ -90,6 +104,15 @@ class Tweezers:
         
         self.indices = np.stack([iarr.flatten(), jarr.flatten()])
         self.positions = np.stack([xarr.flatten(), yarr.flatten()])
+        
+        try:
+            len(self.avg_filling)
+            self.avg_filling = self.avg_filling.flatten()
+        except:
+            self.avg_filling = [self.avg_filling]*(ni*nj)
+        
+        
+        self.sites = [Tweezer(*args) for args in zip(self.positions.T, self.indices.T, self.avg_filling)]
         
     def set_gt_mask(self):
         if self.occupancies is None:

@@ -25,7 +25,7 @@ class Experiment:
 
         
     def load_atoms(self):
-        self.atoms.load_atoms(self.geometry.positions)
+        self.atoms.load_atoms(self.geometry.sites, self.geometry.filling_distribution, self.geometry.filling_distribution_kwargs)
         self.geometry.occupancies = self.atoms.occupancies
         self.geometry.set_gt_mask()
         
