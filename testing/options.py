@@ -11,22 +11,24 @@ from tweezerlyze.calculation.steck import cesium
 
 atom_options = {
     'species': cesium,
-    'p_filling':0.5,
-    'temperature': 20*1e-6, #K
+    'avg_filling': 1000,
+    'filling_distribution': 'normal',
+    'filling_distribution_kwargs': {'scale': 100},
+    'temperature': 50*1e-6, #K
     }
 
 tweezer_options = {
     'n_sites': (10,10), #int
-    'spacing': (5e-6, 5e-6), #m
+    'spacing': (25e-6, 55e-6), #m
     'angle': 0*np.pi/6, #rad
     'wavelength': 1064e-9, #m
     'power': 10e-3, #W
-    'waist': 1e-6, #m
+    'waist': 6.5e-6, #m
     'offset': (0,0) #m
     }
 
 optics_options = {
-    'magnification': 500/40,
+    'magnification': 250/40,
     'NA': 0.6,
     }
 
@@ -39,7 +41,7 @@ camera_options = {
     'readout_rate': 30e6, #Hz
     'sensor_temperature': -70+273.15, #K
     'exposure_time': 5e-3, #s
-    'position': (4, 4), #px
+    'position': (25, 15), #px
     }
 
 imaging_laser_options = {

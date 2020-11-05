@@ -17,7 +17,7 @@ class Tweezers:
         self.angle = angle
         self.offset=offset
         
-        self.occupation = None
+        self.occupancies = None
         self.indices = None
         self.positions = None
         
@@ -92,14 +92,14 @@ class Tweezers:
         self.positions = np.stack([xarr.flatten(), yarr.flatten()])
         
     def set_gt_mask(self):
-        if self.occupation is None:
-            raise Exception('Must set occupation before generating ground truth mask')
+        if self.occupancies is None:
+            raise Exception('Must set occupancies before generating ground truth mask')
             
         mask = np.zeros(self.n_sites, dtype=bool)
             
         for idx, idx_tuple in enumerate(self.indices.T):
             i, j = idx_tuple
-            mask[i,j] = bool(self.occupation[idx])
+            mask[i,j] = bool(self.occupancies[idx])
             
         self.gt_mask = mask
         

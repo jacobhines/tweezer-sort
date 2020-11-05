@@ -9,6 +9,8 @@ from . atoms import Atoms
 from . geometry import Tweezers
 from . imaging import Imaging
 
+import numpy as np
+
 
 class Experiment:
     def __init__(self, atom_options, tweezer_options, imaging_options):
@@ -24,7 +26,7 @@ class Experiment:
         
     def load_atoms(self):
         self.atoms.load_atoms(self.geometry.positions)
-        self.geometry.occupation = self.atoms.occupation
+        self.geometry.occupancies = self.atoms.occupancies
         self.geometry.set_gt_mask()
         
     def image_atoms(self, imaging_time):
